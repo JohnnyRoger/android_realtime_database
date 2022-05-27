@@ -1,4 +1,4 @@
-# android_realtime_database
+# Android Realtime Database
 A mobile app with real time database, Syncing data from server to mobile application
 
 # Technologies
