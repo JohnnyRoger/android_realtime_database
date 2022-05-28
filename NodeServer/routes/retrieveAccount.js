@@ -28,43 +28,45 @@ const program = async () => {
 
     await instance.start();
 
+    var balance = 0;
+
     instance.addTrigger({
         name: 'test',
         expression: 'nodeserver_realtime.accounts',
         statement: MySQLEvents.STATEMENTS.ALL,
         onEvent: e => {
-            io.on('connection', (socket) => {
-                socket.on('balance', () => {
-                    io.emit('balance', '50')
-                    console.log(balance);
-                });
-                console.log("New Socket Connection" + socket.id)
-
-
-            });
-
             console.log(e);
+            connection.query("select * from accounts where user_id=1", function (err, rows) {
+                if (!err) {
+                    if (rows.length > 0) {
+                        balance = rows[0]['balance'];
+                        console.log(balance);
+                    } else {
+                        console.log("No data!");
+                    }
+                } else {
+                    console.log(err);
+                }
+            });
         }
     });
 
     instance.on(MySQLEvents.EVENTS.CONNECTION_ERROR, console.error);
     instance.on(MySQLEvents.EVENTS.ZONGJI_ERROR, console.error);
 
-    connection.query("select * from accounts where user_id=1", function (err, rows) {
-        if (!err) {
-            console.log("yes")
-            if (rows.length > 0) {
-                const balance = rows[0]['balance'];
-                console.log(balance);
-
-
-            } else {
-                console.log("No data!");
-            }
-        } else {
-            console.log(err);
-        }
+    io.on('connection', (socket) => {
+        socket.on('balance', () => {
+            io.emit('balance', balance)
+            //console.log(balance);
+        });
+        console.log("New Socket Connection" + socket.id)
     });
+    io.on("connect_error", (err) => {
+        console.log(err.message); // prints the message associated with the error
+    });
+
+
+
 }
 
 
